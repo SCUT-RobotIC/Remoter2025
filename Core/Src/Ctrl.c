@@ -7,6 +7,7 @@ short KNOB_L_FLAG,KNOB_R_FLAG;
 int binary[4] ;
 int highByte[6] ;
 int lowByte[6] ;
+int emergencyCnt=0,rstCnt=0;
 uint8_t TXData[10]; 
 int32_t LX,LY,RX,RY;
 uint16_t ADC_Value[BIT]; 
@@ -76,6 +77,22 @@ void Update_BOTTOM(void)
 		{
 				 TXData[BUTTON_PACKET] &= BOTTOM_4_OFF;
 		}
+		if(BOTTOM_6==0) {
+			emergencySuspend|=0x0F;
+			HAL_GPIO_WritePin(GPIOA,GPIO_PIN_1,1);
+			emergencyCnt=200;}
+		else if (emergencyCnt!=0) emergencyCnt--;
+		else {
+			emergencySuspend&=0xF0;
+			HAL_GPIO_WritePin(GPIOA,GPIO_PIN_1,0);}
+		if(BOTTOM_7==0) {
+			emergencySuspend|=0xF0;
+			HAL_GPIO_WritePin(GPIOA,GPIO_PIN_0,1);rstCnt=200;}
+		else if (emergencyCnt!=0) 
+			emergencyCnt--;
+		else {
+			emergencySuspend&=0x0F;
+			HAL_GPIO_WritePin(GPIOA,GPIO_PIN_0,0);}
 						
 //		if(BOTTOM_5==0)//A
 //		{
@@ -232,7 +249,7 @@ void Update_ADC(void)
 	//MAP
 	LX=(int32_t)map( ((LXtemp*3+LXhistory1*2+LXhistory2)/6), LXmin, LXmid,LXmax, -32767,0, 32767 );
 	LY=(int32_t)map( ((LYtemp*3+LYhistory1*2+LYhistory2)/6), LYmin, LYmid,LYmax, -32767,0, 32767 );
-	RX=(int32_t)map( ((RXtemp*3+RXhistory1*2+RXhistory2)/6), RXmin, RXmid,RXmax, 32767, 0,-32767 );
+	RX=(int32_t)map( ((RXtemp*3+RXhistory1*2+RXhistory2)/6), RXmin, RXmid,RXmax, -32767, 0,32767 );
 	RY=(int32_t)map( ((RYtemp*3+RYhistory1*2+RYhistory2)/6), RYmin, RYmid,RYmax, -32767,0,32767 );
 	
 	//提取高八位和第八位

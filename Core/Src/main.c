@@ -32,10 +32,9 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-int Watch;
 int adc_initializer;
 int adc_flag=0;//Used as flag for ADC INIT
-int emergencyCnt=0,rstCnt=0,adcCnt=0,usartCnt=0;
+int adcCnt=0,usartCnt=0;
 int count=0;
 int init=0;
 DataPacket packet;
@@ -105,6 +104,8 @@ int main(void)
   MX_USART2_UART_Init();
   MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
+	adc_initializer=SWITCH_4;
+	
 	HAL_ADC_Start(&hadc1);     
 	HAL_ADC_PollForConversion(&hadc1, 20);
 	HAL_TIM_Base_Start_IT(&htim2);
@@ -237,30 +238,13 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 //			}
 //			default:break;
 //			}
-		if(BOTTOM_6==0) {
-			emergencySuspend|=0x0F;
-			HAL_GPIO_WritePin(GPIOA,GPIO_PIN_1,0);
-			emergencyCnt=200;}
-		else if (emergencyCnt!=0) emergencyCnt--;
-		else {
-			emergencySuspend&=0xF0;
-			HAL_GPIO_WritePin(GPIOA,GPIO_PIN_1,0);}
-		if(BOTTOM_7==0) {
-			emergencySuspend|=0xF0;
-			HAL_GPIO_WritePin(GPIOA,GPIO_PIN_0,0);rstCnt=200;}
-		else if (emergencyCnt!=0) 
-			emergencyCnt--;
-		else {
-			emergencySuspend&=0x0F;
-			HAL_GPIO_WritePin(GPIOA,GPIO_PIN_0,0);}
+		
 		HAL_ADC_Start_DMA(&hadc1,(uint32_t *)ADC_Value,8);
 		Update_BOTTOM();
 		Update_ADC();	
-
 	}
 	
 		if(htim->Instance == htim3.Instance){	
-			Watch=SWITCH_4;
 			if(adc_flag==0){
 				 if(adcCnt<=100){
 						adcCnt++;
@@ -280,7 +264,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 				case 0:
 						if(usartCnt==3){
 							HAL_UART_Transmit_DMA(&huart1,(uint8_t *)&packet,sizeof(packet));
-							
 							usartCnt=0;
 						}
 						else usartCnt++;
@@ -288,10 +271,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 				case 1:HAL_UART_Transmit_DMA(&huart2,(uint8_t *)&packet,sizeof(packet)); break;
 				default:break;
 					}      
-				}
-//	HAL_UART_Transmit_IT(&huart1, (uint8_t *)&packet, 14);			
-//		HAL_UART_Transmit(&huart1, (uint8_t*)&packet,sizeof(packet),0xffff);			
-//			HAL_UART_Transmit(&huart1, (uint8_t*)&buff,sizeof(buff),0xffff);				
+				}			
 	}
 		
 }
